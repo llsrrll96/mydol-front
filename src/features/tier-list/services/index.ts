@@ -1,6 +1,7 @@
 import { api } from '@/services/api';
 import {
   IdolGroupResponse,
+  IdolPageResponse,
   TierListCreate,
   TierListPageResponse,
   TierListResponse,
@@ -28,4 +29,9 @@ export const tierListService = {
 export const idolService = {
   /** GET /api/idol-groups — all idol groups (provides image_url). */
   getAll: () => api.get<IdolGroupResponse[]>('/api/idol-groups'),
+  /** GET /api/idols — paged member catalog. */
+  getMembers: (page = 1, pageSize = 500) =>
+    api.get<IdolPageResponse>('/api/idols', {
+      params: { page, page_size: pageSize },
+    }),
 };

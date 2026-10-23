@@ -8,6 +8,8 @@ interface ItemCardProps extends React.HTMLAttributes<HTMLDivElement> {
   isDragging?: boolean;
   /** Rendered inside the floating DragOverlay (adds depth + tilt). */
   isOverlay?: boolean;
+  /** Keep the idol name visible without requiring hover. */
+  alwaysShowName?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface ItemCardProps extends React.HTMLAttributes<HTMLDivElement> {
  * wrapper and by the floating <DragOverlay/> during a drag.
  */
 export const ItemCard = forwardRef<HTMLDivElement, ItemCardProps>(
-  ({ item, isDragging, isOverlay, className, ...props }, ref) => {
+  ({ item, isDragging, isOverlay, alwaysShowName, className, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -37,7 +39,12 @@ export const ItemCard = forwardRef<HTMLDivElement, ItemCardProps>(
           crossOrigin="anonymous"
           className="w-full h-full object-cover pointer-events-none"
         />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-1 pt-3 pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div
+          className={cn(
+            'absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-1 pt-3 pb-1 transition-opacity',
+            alwaysShowName ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          )}
+        >
           <span className="block text-[10px] leading-tight font-bold text-white truncate">
             {item.name}
           </span>

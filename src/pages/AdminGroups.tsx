@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ADMIN_TOKEN_KEY, adminService, getErrorMessage } from '@/services/admin';
+import { Link } from 'react-router-dom';
+import { adminService, getErrorMessage } from '@/services/admin';
 import { idolService } from '@/features/tier-list/services';
 import type { IdolGroupResponse } from '@/features/tier-list/types';
 import { useCrawlJob } from '@/hooks/useCrawlJob';
@@ -14,7 +14,6 @@ export function AdminGroups() {
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState<number | null>(null);
-  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     const { data } = await idolService.getAll();
@@ -67,15 +66,13 @@ export function AdminGroups() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
-    navigate('/admin/login', { replace: true });
-  };
-
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h1 className="text-xl font-bold">아이돌 그룹 관리</h1>
+        <div>
+          <h2 className="text-2xl font-black md:text-3xl">아이돌 그룹 관리</h2>
+          <p className="mt-1 text-sm text-white/40">아이돌 그룹 정보, 멤버, 이미지를 관리합니다.</p>
+        </div>
         <div className="flex gap-2">
           <button
             className="px-3 py-1 rounded bg-white/10 disabled:opacity-50"
@@ -90,9 +87,6 @@ export function AdminGroups() {
             onClick={startIdolCrawl}
           >
             아이돌 크롤링(오늘 분량)
-          </button>
-          <button className="px-3 py-1 rounded bg-white/10" onClick={logout}>
-            로그아웃
           </button>
         </div>
       </div>

@@ -25,6 +25,12 @@ export const Home = () => {
         >
           둘러보기
         </Link>
+        <Link
+          to="/my-groups/new"
+          className="px-8 py-4 bg-white/5 border border-pink-400/30 text-pink-100 rounded-full font-bold text-lg hover:bg-pink-400/10 transition-colors active:scale-95"
+        >
+          나만의 그룹 만들기
+        </Link>
       </div>
     </div>
   );

@@ -1,17 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Layers } from 'lucide-react';
+import { Heart, Layers, Plus } from 'lucide-react';
 import { tierListService } from '@/features/tier-list/services';
 import { TierListResponse } from '@/features/tier-list/types';
+import { tierListLikesService, TierListLikes } from '@/features/tier-list/services/likes';
+import { useCreatorId } from '@/hooks/useCreatorId';
 
 /** Count ranked idols across a list's tiers (for the card meta line). */
 const countItems = (list: TierListResponse) =>
   (list.tiers ?? []).reduce((sum, t) => sum + (t.idol_group_ids?.length ?? 0), 0);
 
 export const TierListsPage = () => {
+  const creatorId = useCreatorId();
   const [lists, setLists] = useState<TierListResponse[]>([]);
+  const [likes, setLikes] = useState<TierListLikes>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [likesError, setLikesError] = useState('');
+  const [sortByLikes, setSortByLikes] = useState(true);
+  const [savingLikeId, setSavingLikeId] = useState<number | null>(null);
+  const likeRequestInProgress = useRef(false);
 
   useEffect(() => {
     tierListService
@@ -20,6 +28,42 @@ export const TierListsPage = () => {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    try {
+      setLikes(tierListLikesService.getAll());
+      setLikesError('');
+    } catch (err) {
+      console.error('좋아요 정보를 불러오지 못했습니다.', err);
+      setLikesError('좋아요 정보를 불러오지 못했습니다. 브라우저 저장 데이터를 확인해주세요.');
+    }
+  }, []);
+
+  const displayedLists = useMemo(() => {
+    if (!sortByLikes) return lists;
+    return [...lists].sort(
+      (a, b) =>
+        (likes[String(b.id)]?.count ?? 0) - (likes[String(a.id)]?.count ?? 0)
+    );
+  }, [likes, lists, sortByLikes]);
+
+  const toggleLike = async (list: TierListResponse) => {
+    if (!creatorId || likeRequestInProgress.current) return;
+    likeRequestInProgress.current = true;
+    setSavingLikeId(list.id);
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 350));
+      const updated = tierListLikesService.toggle(list.id, creatorId);
+      setLikes((current) => ({ ...current, [String(list.id)]: updated }));
+      setLikesError('');
+    } catch (err) {
+      console.error('좋아요 저장에 실패했습니다.', err);
+      setLikesError('좋아요를 저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.');
+    } finally {
+      likeRequestInProgress.current = false;
+      setSavingLikeId(null);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto py-8 space-y-8">
@@ -37,6 +81,21 @@ export const TierListsPage = () => {
           <span className="sm:hidden">만들기</span>
         </Link>
       </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-white/35">
+          좋아요는 이 브라우저에 저장되며, 다른 사용자와 수는 공유되지 않습니다.
+        </p>
+        <button
+          type="button"
+          onClick={() => setSortByLikes((current) => !current)}
+          aria-pressed={sortByLikes}
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:bg-white/10"
+        >
+          {sortByLikes ? '좋아요순' : '최신순'}
+        </button>
+      </div>
+      {likesError && <p role="alert" className="text-sm text-red-300">{likesError}</p>}
 
       {loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -67,23 +126,55 @@ export const TierListsPage = () => {
 
       {!loading && !error && lists.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {lists.map((list) => (
-            <Link
-              key={list.id}
-              to={`/tier-lists/${list.id}`}
-              className="group rounded-2xl overflow-hidden bg-card border border-white/10 hover:border-pink-400/40 hover:-translate-y-1 transition-all"
-            >
-              <div className="aspect-[4/3] bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-transparent flex items-center justify-center overflow-hidden">
-                <Layers className="text-white/30 group-hover:text-pink-300/60 transition-colors" size={40} />
-              </div>
-              <div className="p-3">
-                <h3 className="font-bold truncate group-hover:text-pink-300 transition-colors">
-                  {list.title || '제목 없음'}
-                </h3>
-                <p className="text-xs text-white/40 mt-0.5">{countItems(list)}팀 랭크됨</p>
-              </div>
-            </Link>
-          ))}
+          {displayedLists.map((list) => {
+            const listLikes = likes[String(list.id)];
+            const liked = !!creatorId && !!listLikes?.voterIds.includes(creatorId);
+
+            return (
+              <article
+                key={list.id}
+                className="group overflow-hidden rounded-2xl border border-white/10 bg-card transition-all hover:-translate-y-1 hover:border-pink-400/40"
+              >
+                <Link to={`/tier-lists/${list.id}`} className="block">
+                  <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-transparent">
+                    <Layers className="text-white/30 transition-colors group-hover:text-pink-300/60" size={40} />
+                  </div>
+                  <div className="p-3 pb-1">
+                    <h3 className="truncate font-bold transition-colors group-hover:text-pink-300">
+                      {list.title || '제목 없음'}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-white/40">{countItems(list)}팀 랭크됨</p>
+                  </div>
+                </Link>
+                <div className="flex items-center justify-between px-3 pb-3 pt-2">
+                  <span className="text-xs text-white/35">
+                    {list.created_at ? new Date(list.created_at).toLocaleDateString('ko-KR') : ''}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void toggleLike(list)}
+                    disabled={!creatorId || !!likesError || savingLikeId !== null}
+                    aria-label={liked ? `${list.title} 좋아요 취소` : `${list.title} 좋아요`}
+                    aria-pressed={liked}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                      liked
+                        ? 'bg-pink-500/15 text-pink-300'
+                        : 'bg-white/5 text-white/50 hover:bg-pink-500/10 hover:text-pink-300'
+                    }`}
+                  >
+                    {savingLikeId === list.id ? (
+                      <span className="text-xs">저장 중…</span>
+                    ) : (
+                      <>
+                        <Heart size={15} fill={liked ? 'currentColor' : 'none'} />
+                        <span>{listLikes?.count ?? 0}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

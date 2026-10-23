@@ -6,6 +6,12 @@ import { AdminLogin } from '@/pages/AdminLogin';
 import { AdminGuard } from '@/pages/AdminGuard';
 import { AdminGroups } from '@/pages/AdminGroups';
 import { AdminIdols } from '@/pages/AdminIdols';
+import { AdminLayout } from '@/pages/AdminLayout';
+import { AdminTierLists } from '@/pages/AdminTierLists';
+import { AdminMyGroups } from '@/pages/AdminMyGroups';
+import { AdminUsers } from '@/pages/AdminUsers';
+import { MyGroupsPage } from '@/pages/MyGroupsPage';
+import { MyGroupEditor } from '@/pages/MyGroupEditor';
 
 function App() {
   return (
@@ -21,7 +27,10 @@ function App() {
                 둘러보기
               </Link>
               <Link to="/tier-lists/new" className="px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors">
-                만들기
+                티어표 만들기
+              </Link>
+              <Link to="/my-groups" className="px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors">
+                나만의 그룹
               </Link>
             </nav>
           </div>
@@ -32,10 +41,19 @@ function App() {
             <Route path="/tier-lists" element={<TierListsPage />} />
             <Route path="/tier-lists/new" element={<TierListEditor />} />
             <Route path="/tier-lists/:id" element={<TierListEditor />} />
+            <Route path="/my-groups" element={<MyGroupsPage />} />
+            <Route path="/my-groups/new" element={<MyGroupEditor />} />
+            <Route path="/my-groups/:id" element={<MyGroupEditor />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route element={<AdminGuard />}>
-              <Route path="/admin" element={<AdminGroups />} />
-              <Route path="/admin/groups/:groupId" element={<AdminIdols />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminGroups />} />
+                <Route path="groups/:groupId" element={<AdminIdols />} />
+                <Route path="tier-lists" element={<AdminTierLists />} />
+                <Route path="my-groups" element={<AdminMyGroups />} />
+                <Route path="my-groups/:id" element={<MyGroupEditor />} />
+                <Route path="users" element={<AdminUsers />} />
+              </Route>
             </Route>
           </Routes>
         </main>

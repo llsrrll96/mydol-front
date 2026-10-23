@@ -7,10 +7,17 @@ interface SortableItemCardProps {
   item: TierItem;
   /** Container id this card lives in (used as sortable data). */
   containerId: string;
+  alwaysShowName?: boolean;
+  onClick?: () => void;
 }
 
 /** A single draggable + sortable idol card inside a tier or the pool. */
-export const SortableItemCard = ({ item, containerId }: SortableItemCardProps) => {
+export const SortableItemCard = ({
+  item,
+  containerId,
+  alwaysShowName,
+  onClick,
+}: SortableItemCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id, data: { containerId } });
 
@@ -25,6 +32,8 @@ export const SortableItemCard = ({ item, containerId }: SortableItemCardProps) =
       style={style}
       item={item}
       isDragging={isDragging}
+      alwaysShowName={alwaysShowName}
+      onClick={onClick}
       {...attributes}
       {...listeners}
     />
