@@ -4,6 +4,7 @@ import { TierListsPage } from '@/pages/TierListsPage';
 import { TierListEditor } from '@/pages/TierListEditor';
 import { AdminLogin } from '@/pages/AdminLogin';
 import { AdminGuard } from '@/pages/AdminGuard';
+import { AdminGroups } from '@/pages/AdminGroups';
 import { AdminIdols } from '@/pages/AdminIdols';
 
 function App() {
@@ -33,7 +34,8 @@ function App() {
             <Route path="/tier-lists/:id" element={<TierListEditor />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route element={<AdminGuard />}>
-              <Route path="/admin" element={<AdminIdols />} />
+              <Route path="/admin" element={<AdminGroups />} />
+              <Route path="/admin/groups/:groupId" element={<AdminIdols />} />
             </Route>
           </Routes>
         </main>

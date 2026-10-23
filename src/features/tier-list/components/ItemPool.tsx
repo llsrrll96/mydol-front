@@ -44,7 +44,7 @@ export const ItemPool = ({ items, loading, error, onRetry }: ItemPoolProps) => {
           {!loading && error && (
             <div className="w-full text-center space-y-3 py-4">
               <p className="text-sm text-white/40">
-                아이돌 목록을 불러오지 못했습니다. 백엔드(/api/idols) 연결을 확인해주세요.
+                아이돌 목록을 불러오지 못했습니다. 백엔드(/api/idol-groups) 연결을 확인해주세요.
               </p>
               {onRetry && (
                 <button

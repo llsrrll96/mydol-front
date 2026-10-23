@@ -26,6 +26,6 @@ export const tierListService = {
 };
 
 export const idolService = {
-  /** GET /api/idols — all idol groups (provides image_url). */
-  getAll: () => api.get<IdolGroupResponse[]>('/api/idols'),
+  /** GET /api/idol-groups — all idol groups (provides image_url). */
+  getAll: () => api.get<IdolGroupResponse[]>('/api/idol-groups'),
 };
